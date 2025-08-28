@@ -5,7 +5,7 @@
 package br.edu.todolistaula.dao;
 
 import br.edu.todolistaula.database.ConexaoDB;
-import com.mysql.cj.xdevapi.Result;
+import br.edu.todolistaula.model.Usuario;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,6 +18,7 @@ import java.sql.SQLException;
 public class UsuarioDAO {
     private boolean usuarioLogado = false;
     private Connection con;
+    private int id = 0;
     
     public boolean checarUsuario(
             String email, String senha) throws SQLException{
@@ -50,5 +51,54 @@ public class UsuarioDAO {
         }
         
         return usuarioLogado;
+    }
+    
+    public int retornarId(String email, String senha) 
+            throws SQLException{
+        con = ConexaoDB.getConexao();
+        String sql = "SELECT id FROM tb_usuarios "
+                + "WHERE email = ? AND senha = ?";
+        
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, email);
+            ps.setString(2, senha);
+            
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                id = rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            System.out.println("ERRO, ao retornar id -> " + e);
+        } finally{
+            con.close();
+            System.out.println("Conexão fechada. (Buscar id usuário)");
+        }
+        return id;
+    }
+    
+    public void salvarUsuario(Usuario u) throws SQLException{
+        con = ConexaoDB.getConexao();
+        
+        String sql = "INSERT INTO tb_usuarios (id, nome, "
+                + "email, senha)"
+                + " VALUES (?, ?, ?, ?)";
+        
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, u.getId());
+            ps.setString(2, u.getNome());
+            ps.setString(3, u.getEmail());
+            ps.setString(4, u.getSenha());
+            
+            ps.executeUpdate();
+        }catch (SQLException e){
+            System.out.println("ERRO, não foi possível "
+                    + "salvar no banco -> " + e);
+        }finally{
+            con.close();
+            System.out.println("Conexão fechada "
+                    + "(Cadastrar usuário)");
+        }
     }
 }
