@@ -117,10 +117,8 @@ public class Login extends javax.swing.JFrame {
         
         try {
             if(usuarioDAO.checarUsuario(email, senha)){
-                
-                int id = usuarioDAO.retornarId(email, senha);
                 System.out.println("Usuário logado com sucesso!");
-                new Principal(id).setVisible(true);
+                new Principal().setVisible(true);
                 this.dispose();
             }else{
                 System.out.println("Email ou senha "
@@ -176,4 +174,14 @@ public class Login extends javax.swing.JFrame {
     private javax.swing.JTextField txtEmail;
     // End of variables declaration//GEN-END:variables
 
+    private Usuario retornaUsuario(
+            String nome, String email, String senha){
+        
+        Usuario usuario = new Usuario();
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(senha);
+        
+        return usuario;
+    }
 }

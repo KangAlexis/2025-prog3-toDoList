@@ -4,18 +4,15 @@
  */
 package br.edu.todolistaula.view;
 
-import br.edu.todolistaula.dao.UsuarioDAO;
-import br.edu.todolistaula.model.Usuario;
-import java.sql.SQLException;
-
 /**
  *
  * @author User
  */
 public class CadastrarUsuario extends javax.swing.JFrame {
 
-    private UsuarioDAO usuarioDAO = new UsuarioDAO();
-    
+    /**
+     * Creates new form CadastrarUsuario
+     */
     public CadastrarUsuario() {
         initComponents();
         setLocationRelativeTo(this);
@@ -63,11 +60,6 @@ public class CadastrarUsuario extends javax.swing.JFrame {
         });
 
         btnSalvar.setText("Salvar");
-        btnSalvar.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSalvarActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -139,22 +131,6 @@ public class CadastrarUsuario extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_btnCancelarActionPerformed
 
-    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        String nome = txtNome.getText();
-        String email = txtEmail.getText();
-        String senha =  String.valueOf(pswSenha.getPassword());
-        
-        try{
-            usuarioDAO.salvarUsuario(
-                    retornaUsuario(nome, email, senha));
-        }catch(SQLException e){
-            System.out.println("ERRO, ao salvar novo"
-                    + " usuário na view -> "+ e);
-        }
-        
-         
-    }//GEN-LAST:event_btnSalvarActionPerformed
-
     /**
      * @param args the command line arguments
      */
@@ -202,14 +178,4 @@ public class CadastrarUsuario extends javax.swing.JFrame {
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtNome;
     // End of variables declaration//GEN-END:variables
-    private Usuario retornaUsuario(
-            String nome, String email, String senha){
-        
-        Usuario usuario = new Usuario();
-        usuario.setNome(nome);
-        usuario.setEmail(email);
-        usuario.setSenha(senha);
-        
-        return usuario;
-    }
 }
