@@ -15,22 +15,26 @@ import javax.swing.table.DefaultTableModel;
  * @author User
  */
 public class Principal extends javax.swing.JFrame {
-
+    
+    // Guarda o id do usuário logado (serve para filtrar apenas as tarefas dele)
     private int idUsuario;
+
+    // Objeto do DAO que permite acessar as tarefas no banco de dados
     private TarefaDAO tarefaDAO = new TarefaDAO();
     
+    // Construtor sem parâmetros
     public Principal() {
-        initComponents();
-        setLocationRelativeTo(this);
-        setResizable(false);
+        initComponents();          // inicializa os componentes gráficos (gerado pelo NetBeans)
+        setLocationRelativeTo(this); // centraliza a tela na tela do computador
+        setResizable(false);         // impede que a janela seja redimensionada
     }
-    
+   // Construtor que recebe o id do usuário logado
     public Principal(int idUsuario) {
-        initComponents();
-        setLocationRelativeTo(this);
-        setResizable(false);
-        this.idUsuario = idUsuario;
-        atualizaTabela();
+        initComponents();            // inicializa os componentes gráficos
+        setLocationRelativeTo(this); // centraliza a tela
+        setResizable(false);         // trava o redimensionamento
+        this.idUsuario = idUsuario;  // guarda o id do usuário logado
+        atualizaTabela();            // já atualiza a tabela com as tarefas dele
     }
 
     /**
@@ -296,27 +300,38 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTextField txtPesquisar;
     private javax.swing.JTextField txtTitulo;
     // End of variables declaration//GEN-END:variables
-private void atualizaTabela(){
-    DefaultTableModel modelo = (DefaultTableModel) 
-            tblTarefas.getModel();
-    modelo.setNumRows(0);
-    ArrayList<Tarefa> tarefas = new ArrayList<>();
-    
-    try {
-        tarefas = tarefaDAO.retornaListadeTarefas(idUsuario);
+    // Método responsável por atualizar os dados da tabela de tarefas na tela
+    private void atualizaTabela(){
+        // Pega o modelo da tabela (tblTarefas) e zera as linhas atuais
+        DefaultTableModel modelo = (DefaultTableModel) tblTarefas.getModel();
+        modelo.setNumRows(0);
         
+        // Cria uma lista de tarefas (inicialmente vazia)
+        ArrayList<Tarefa> tarefas = new ArrayList<>();
         
-        for(Tarefa t : tarefas){
-            String concluida = (t.isConcluida() ? "Sim" : "Não");
-            Object [] linha = {
-                t.getId(), 
-                t.getTitulo(), 
-                t.getDescriao(), 
-                concluida};
-            modelo.addRow(linha);
+        try {
+            // Busca no banco todas as tarefas do usuário logado
+            tarefas = tarefaDAO.retornaListadeTarefas(idUsuario);
+            
+            // Percorre cada tarefa da lista
+            for(Tarefa t : tarefas){
+                // Se concluída for true, mostra "Sim", senão mostra "Não"
+                String concluida = (t.isConcluida() ? "Sim" : "Não");
+                
+                // Monta um vetor com os dados da tarefa (cada posição é uma coluna da tabela)
+                Object [] linha = {
+                    t.getId(),         // primeira coluna: ID
+                    t.getTitulo(),     // segunda coluna: Título
+                    t.getDescriao(),   // terceira coluna: Descrição
+                    concluida          // quarta coluna: se está concluída
+                };
+                
+                // Adiciona essa linha na tabela
+                modelo.addRow(linha);
+            }
+        } catch (SQLException e) {
+            // Caso dê algum erro de banco, mostra no console
+            System.out.println("ERRO, ao carregar tabela na view -> " + e);
         }
-    } catch (SQLException e) {
-        System.out.println("ERRO, ao carregar tabela na view -> " + e);
-    }
-}
+    } 
 }

@@ -8,17 +8,22 @@ import br.edu.todolistaula.dao.UsuarioDAO;
 import br.edu.todolistaula.model.Usuario;
 import java.sql.SQLException;
 
-/**
- *
- * @author User
- */
+// Classe responsável pela tela de cadastro de usuários
+// Ela herda de javax.swing.JFrame, ou seja, é uma janela gráfica.
 public class CadastrarUsuario extends javax.swing.JFrame {
 
+    // Cria um objeto de UsuarioDAO, que será usado para salvar ou manipular usuários no banco
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
     
+    // Construtor da classe (executado quando criamos a tela)
     public CadastrarUsuario() {
+        // Método gerado pelo NetBeans que inicializa todos os componentes da interface (botões, caixas de texto, etc.)
         initComponents();
+        
+        // Centraliza a janela na tela (passando "this" como referência da própria janela)
         setLocationRelativeTo(this);
+        
+        // Impede que a janela seja redimensionada pelo usuário
         setResizable(false);
     }
 
@@ -135,24 +140,29 @@ public class CadastrarUsuario extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // Evento do botão "Cancelar"
+    // Esse método é chamado automaticamente quando o usuário clica no botão Cancelar.
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
+        // Fecha a janela atual (cadastro de usuário)
         this.dispose();
     }//GEN-LAST:event_btnCancelarActionPerformed
 
+    // Evento do botão "Salvar"
+    // Esse método é chamado automaticamente quando o usuário clica no botão Salvar.
     private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
-        String nome = txtNome.getText();
-        String email = txtEmail.getText();
-        String senha =  String.valueOf(pswSenha.getPassword());
+         // Captura o que foi digitado nos campos da tela
+        String nome = txtNome.getText();                        // pega o texto digitado no campo Nome
+        String email = txtEmail.getText();                      // pega o texto digitado no campo Email
+        String senha = String.valueOf(pswSenha.getPassword());  // pega a senha digitada no campo Senha (convertendo de char[] para String)
         
-        try{
-            usuarioDAO.salvarUsuario(
-                    retornaUsuario(nome, email, senha));
-        }catch(SQLException e){
-            System.out.println("ERRO, ao salvar novo"
-                    + " usuário na view -> "+ e);
-        }
-        
-         
+        try {
+            // Chama o método salvarUsuario do DAO, enviando um objeto Usuario
+            // O método retornaUsuario(nome, email, senha) cria esse objeto Usuario preenchido
+            usuarioDAO.salvarUsuario(retornaUsuario(nome, email, senha));
+        } catch(SQLException e) {
+            // Caso aconteça algum erro ao salvar no banco, ele será mostrado no console
+            System.out.println("ERRO, ao salvar novo usuário na view -> " + e);
+        }  
     }//GEN-LAST:event_btnSalvarActionPerformed
 
     /**
@@ -202,14 +212,20 @@ public class CadastrarUsuario extends javax.swing.JFrame {
     private javax.swing.JTextField txtEmail;
     private javax.swing.JTextField txtNome;
     // End of variables declaration//GEN-END:variables
-    private Usuario retornaUsuario(
-            String nome, String email, String senha){
+    // Método auxiliar que cria e retorna um objeto Usuario
+    // Ele recebe como parâmetros os valores digitados na tela (nome, email e senha)
+    private Usuario retornaUsuario(String nome, String email, String senha){
         
+        // Cria um novo objeto da classe Usuario
         Usuario usuario = new Usuario();
-        usuario.setNome(nome);
-        usuario.setEmail(email);
-        usuario.setSenha(senha);
         
+        // Preenche o objeto com os dados recebidos
+        usuario.setNome(nome);     // define o nome do usuário
+        usuario.setEmail(email);   // define o email do usuário
+        usuario.setSenha(senha);   // define a senha do usuário
+        
+        // Retorna o objeto Usuario já pronto para ser salvo no banco
         return usuario;
     }
+
 }
