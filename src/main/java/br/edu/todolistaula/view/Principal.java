@@ -8,6 +8,8 @@ import br.edu.todolistaula.dao.TarefaDAO;
 import br.edu.todolistaula.model.Tarefa;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -22,9 +24,13 @@ public class Principal extends javax.swing.JFrame {
     // Objeto do DAO que permite acessar as tarefas no banco de dados
     private TarefaDAO tarefaDAO = new TarefaDAO();
     
+    private int linha = -1;          // guarda a linha selecionada na tabela (-1 = nenhuma selecionada)
+    
+    private boolean editar = false;  // indica se o clique na tabela entrou em modo edição
+    
     // Construtor sem parâmetros
     public Principal() {
-        initComponents();          // inicializa os componentes gráficos (gerado pelo NetBeans)
+        initComponents();            // inicializa os componentes gráficos (gerado pelo NetBeans)
         setLocationRelativeTo(this); // centraliza a tela na tela do computador
         setResizable(false);         // impede que a janela seja redimensionada
     }
@@ -46,30 +52,30 @@ public class Principal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        buttonGroup1 = new javax.swing.ButtonGroup();
+        buttonGroup1 = new javax.swing.ButtonGroup(); // agrupa os rádios (garante seleção mutuamente exclusiva)
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        txtTitulo = new javax.swing.JTextField();
+        txtTitulo = new javax.swing.JTextField();      // campo para digitar o título da tarefa
         jScrollPane1 = new javax.swing.JScrollPane();
-        txaDescricao = new javax.swing.JTextArea();
-        rdbSim = new javax.swing.JRadioButton();
-        rdbNao = new javax.swing.JRadioButton();
-        btnSalvar = new javax.swing.JButton();
-        btnLimpar = new javax.swing.JButton();
+        txaDescricao = new javax.swing.JTextArea();    // área de texto para a descrição da tarefa
+        rdbSim = new javax.swing.JRadioButton();       // opção "concluída = true"
+        rdbNao = new javax.swing.JRadioButton();       // opção "concluída = false"
+        btnSalvar = new javax.swing.JButton();         // botão para salvar/atualizar a tarefa
+        btnLimpar = new javax.swing.JButton();         // botão para limpar os campos do formulário
         jLabel4 = new javax.swing.JLabel();
-        txtPesquisar = new javax.swing.JTextField();
-        btnBuscar = new javax.swing.JButton();
+        txtPesquisar = new javax.swing.JTextField();   // campo para digitar o título a pesquisar
+        btnBuscar = new javax.swing.JButton();         // botão que dispara a busca/filtragem
         jScrollPane2 = new javax.swing.JScrollPane();
-        tblTarefas = new javax.swing.JTable();
-        btnSair = new javax.swing.JButton();
-        btnExcluir = new javax.swing.JButton();
+        tblTarefas = new javax.swing.JTable();         // tabela que lista as tarefas
+        btnSair = new javax.swing.JButton();           // fecha a janela atual
+        btnExcluir = new javax.swing.JButton();        // exclui a tarefa selecionada
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255)); // fundo branco do painel principal
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)), "Cadastrar uma nova tarefa", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Segoe UI", 0, 24))); // NOI18N
 
@@ -93,9 +99,20 @@ public class Principal extends javax.swing.JFrame {
         rdbNao.setText("Não");
 
         btnSalvar.setText("Salvar");
+        btnSalvar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSalvarActionPerformed(evt);
+            }
+        });
 
         btnLimpar.setText("Limpar");
+        btnLimpar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLimparActionPerformed(evt);
+            }
+        });
 
+        // layout do painel do formulário (gerado)
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -153,10 +170,22 @@ public class Principal extends javax.swing.JFrame {
                         .addContainerGap())))
         );
 
-        jLabel4.setText("Título:");
+        jLabel4.setText("Título:"); // rótulo do campo de pesquisa
+
+        txtPesquisar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtPesquisarKeyPressed(evt);
+            }
+        });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBuscarActionPerformed(evt);
+            }
+        });
 
+        // configuração do modelo da tabela (colunas, tipos e edição)
         tblTarefas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -169,7 +198,7 @@ public class Principal extends javax.swing.JFrame {
                 java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false
+                false, false, false, false // impede edição direta nas células
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -180,12 +209,28 @@ public class Principal extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        tblTarefas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblTarefasMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(tblTarefas);
 
         btnSair.setText("Sair");
+        btnSair.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSairActionPerformed(evt);
+            }
+        });
 
         btnExcluir.setText("Excluir");
+        btnExcluir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExcluirActionPerformed(evt);
+            }
+        });
 
+        // layout do painel principal (gerado)
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -227,6 +272,7 @@ public class Principal extends javax.swing.JFrame {
                 .addContainerGap(10, Short.MAX_VALUE))
         );
 
+        // layout do frame (gerado)
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -243,6 +289,93 @@ public class Principal extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    // Clique no botão Salvar: salva nova tarefa ou confirma edição (conforme flag 'editar')
+    private void btnSalvarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSalvarActionPerformed
+        Tarefa t = retornaObjeto(); // monta o objeto Tarefa a partir dos campos da tela
+        
+        if(editar){
+            try {
+                int id = (int) tblTarefas.getValueAt(linha, 0); // pega o id da tarefa selecionada
+                tarefaDAO.editarTarefa(t, id);  // atualiza no banco
+                atualizaTabela();               // recarrega a tabela
+                limparCampos();                 // limpa o formulário
+                editar = false;                 // volta para modo "inserção"
+            } catch (SQLException e) {
+                System.out.println("ERRO, ao editar "
+                        + "tarefa (view) -> " + e);
+            }    
+        }else{
+            try {
+                tarefaDAO.addTarefa(retornaObjeto(), idUsuario); // insere nova tarefa para o usuário
+                atualizaTabela();   // recarrega a tabela
+                limparCampos();     // limpa o formulário
+            } catch (SQLException e) {
+                System.out.println("ERRO, ao salvar "
+                    + "tarefa (view) -> " + e);
+            } 
+        }   
+    }//GEN-LAST:event_btnSalvarActionPerformed
+
+    // Clique no botão Limpar: limpa os campos e desmarca os rádios
+    private void btnLimparActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimparActionPerformed
+        limparCampos();
+    }//GEN-LAST:event_btnLimparActionPerformed
+
+    // Clique no botão Sair: fecha apenas esta janela (dispose)
+    private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
+        this.dispose();
+    }//GEN-LAST:event_btnSairActionPerformed
+
+    // Clique na tabela: carrega dados da linha selecionada nos campos e entra em modo edição
+    private void tblTarefasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblTarefasMouseClicked
+        linha = tblTarefas.getSelectedRow(); // obtém o índice da linha clicada
+        
+        if(linha != -1){
+            // lê os valores das colunas da linha selecionada
+            String titulo = (String) tblTarefas.getValueAt(linha, 1);
+            String descricao = (String) tblTarefas.getValueAt(linha, 2);
+            String concluida = (String) tblTarefas.getValueAt(linha, 3);
+            
+            // preenche os campos do formulário
+            txtTitulo.setText(titulo);
+            txaDescricao.setText(descricao);
+            
+            // marca o rádio conforme a coluna "Concluída" (texto "Sim"/"Não" mostrado na tabela)
+            if(concluida.equals("Sim")){
+                rdbSim.setSelected(true);
+            }else{
+                rdbNao.setSelected(true);
+            }
+        }
+        editar = true; // sinaliza que, ao salvar, será uma edição e não uma inserção
+    }//GEN-LAST:event_tblTarefasMouseClicked
+
+    // Clique no botão Excluir: remove do banco a tarefa da linha selecionada
+    private void btnExcluirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExcluirActionPerformed
+        int id = (int) tblTarefas.getValueAt(linha, 0); // pega o id da tarefa selecionada
+        
+        try {
+            tarefaDAO.deletarTarefa(id); // exclui no banco
+            atualizaTabela();            // atualiza a listagem
+            editar = false;              // volta para modo "inserção"
+        } catch (SQLException e) {
+            System.out.println("ERRO, ao deletar "
+                    + "tarefa (view) " + e);
+        }
+    }//GEN-LAST:event_btnExcluirActionPerformed
+
+    // Clique no botão Buscar: filtra a tabela pelo título digitado
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        String titulo = txtPesquisar.getText();
+        atualizaTabela(titulo); // recarrega a tabela aplicando o filtro por título
+    }//GEN-LAST:event_btnBuscarActionPerformed
+
+    // Digitou no campo de pesquisa: faz a busca "ao digitar" (atualização imediata)
+    private void txtPesquisarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtPesquisarKeyPressed
+        String titulo = txtPesquisar.getText();
+        atualizaTabela(titulo); // filtra conforme texto atual no campo
+    }//GEN-LAST:event_txtPesquisarKeyPressed
+
     /**
      * @param args the command line arguments
      */
@@ -255,7 +388,7 @@ public class Principal extends javax.swing.JFrame {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName()); // aplica o tema Nimbus, se disponível
                     break;
                 }
             }
@@ -273,7 +406,7 @@ public class Principal extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Principal().setVisible(true);
+                new Principal().setVisible(true); // cria e exibe a janela
             }
         });
     }
@@ -300,6 +433,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTextField txtPesquisar;
     private javax.swing.JTextField txtTitulo;
     // End of variables declaration//GEN-END:variables
+
     // Método responsável por atualizar os dados da tabela de tarefas na tela
     private void atualizaTabela(){
         // Pega o modelo da tabela (tblTarefas) e zera as linhas atuais
@@ -312,6 +446,63 @@ public class Principal extends javax.swing.JFrame {
         try {
             // Busca no banco todas as tarefas do usuário logado
             tarefas = tarefaDAO.retornaListadeTarefas(idUsuario);
+            
+            // Percorre cada tarefa da lista
+            for(Tarefa t : tarefas){
+                // Se concluída for true, mostra "Sim", senão mostra "Não"
+                String concluida = (t.isConcluida() ? "Sim" : "Não");
+                
+                // Monta um vetor com os dados da tarefa (cada posição é uma coluna da tabela)
+                Object [] linha = {
+                    t.getId(),         // primeira coluna: ID
+                    t.getTitulo(),     // segunda coluna: Título
+                    t.getDescriao(),   // terceira coluna: Descrição
+                    concluida          // quarta coluna: se está concluída
+                };
+                
+                // Adiciona essa linha na tabela
+                modelo.addRow(linha);
+            }
+        } catch (SQLException e) {
+            // Caso dê algum erro de banco, mostra no console
+            System.out.println("ERRO, ao carregar tabela na view -> " + e);
+        }
+    } 
+    
+    // Monta um objeto Tarefa a partir dos campos preenchidos no formulário
+    private Tarefa retornaObjeto(){
+        String titulo = txtTitulo.getText();         // lê o título digitado
+        String descricao = txaDescricao.getText();   // lê a descrição digitada
+        boolean concluida = rdbSim.isSelected();     // marca "true" se o rádio "Sim" estiver selecionado
+        
+        Tarefa t = new Tarefa();
+        t.setTitulo(titulo);
+        t.setDescriao(descricao);
+        t.setConcluida(concluida);
+        t.setUsuarioId(idUsuario); // relaciona a tarefa com o usuário logado
+        
+        return t;          
+    }
+
+    // Limpa os campos do formulário e desmarca as opções
+    private void limparCampos(){
+        txtTitulo.setText("");
+        txaDescricao.setText("");
+        buttonGroup1.clearSelection(); // desmarca os rádios "Sim"/"Não"
+    }
+    
+    // Atualiza a tabela aplicando filtro por título (busca com LIKE no DAO)
+    private void atualizaTabela(String titulo){
+        // Pega o modelo da tabela (tblTarefas) e zera as linhas atuais
+        DefaultTableModel modelo = (DefaultTableModel) tblTarefas.getModel();
+        modelo.setNumRows(0);
+        
+        // Cria uma lista de tarefas (inicialmente vazia)
+        ArrayList<Tarefa> tarefas = new ArrayList<>();
+        
+        try {
+            // Busca no banco todas as tarefas do usuário logado
+            tarefas = tarefaDAO.retornaListadeTarefas(idUsuario, titulo);
             
             // Percorre cada tarefa da lista
             for(Tarefa t : tarefas){
